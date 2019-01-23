@@ -1,3 +1,3 @@
 .. note::
 
-   This page is intended for developers of zipline.
+   此页面只适用于打算贡献 Zipline 的开发人员

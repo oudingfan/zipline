@@ -1,5 +1,5 @@
 =============
-Release Notes
+发布说明
 =============
 
 .. include:: whatsnew/1.3.0.txt

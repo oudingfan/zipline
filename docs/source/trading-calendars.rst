@@ -1,38 +1,39 @@
-Trading Calendars
+交易日历
 -----------------
 
-What is a Trading Calendar?
+什么是交易日历？
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-A trading calendar represents the timing information of a single market exchange. The timing information is made up of two parts: sessions, and opens/closes. This is represented by the Zipline :class:`~zipline.utils.calendars.trading_calendar.TradingCalendar` class, and is used as the parent class for all new ``TradingCalendar`` s.
+交易日历表示交易所的时间信息。
+时间信息由两部分组成：会话和开市闭市时间。这由Zipline的 :class:`~zipline.utils.calendars.trading_calendar.TradingCalendar` 类表示，并用作于所有 ``TradingCalendar``  的实例。
 
-A session represents a contiguous set of minutes, and has a label that is midnight UTC. It is important to note that a session label should not be considered a specific point in time, and that midnight UTC is just being used for convenience.
+会话由一组连续的分钟组成，并具有一个 UTC 时区零点时刻的标签。需要注意的是，标签不应被视为特定时间，UTC 时区零点时刻仅用于方便。
 
-For an average day of the `New York Stock Exchange <https://www.nyse.com/index>`__, the market opens at 9:30AM and closes at 4PM. Trading sessions can change depending on the exchange, day of the year, etc.
+对于一个 `纽约证券交易所 <https://www.nyse.com/index>`__ 的一般交易日来说，市场开放时间为上午9点30分至下午4点。交易时段可能会根据交易所或特殊日子而调整。
 
 
-Why Should You Care About Trading Calendars?
+为什么需要关心日历交易？
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Let's say you want to buy a share of some equity on Tuesday, and then sell it on Saturday. If the exchange in which you're trading that equity is not open on Saturday, then in reality it would not be possible to trade that equity at that time, and you would have to wait until some other number of days past Saturday. Since you wouldn't be able to place the trade in reality, it would also be unreasonable for your backtest to place a trade on Saturday.
+假设您想在周二购入股票，然后在周六卖出。如果交易所在周六没有开放，实际上那时无法卖出，必须等到下一个交易日进行交易。由于现实生活中无法在周六进行交易，因此在回测中这样做也是不合理的。
 
-In order for you to backtest your strategy, the dates in that are accounted for in your `data bundle <http://www.zipline.io/bundles.html>`__ and the dates in your ``TradingCalendar`` should match up; if the dates don't match up, then you you're going to see some errors along the way. This holds for both minutely and daily data.
+为了让回测准确， `数据 bundle <http://www.zipline.io/bundles.html>`__ 中的日期和 ``TradingCalendar`` 中的日期应该匹配；如果不匹配，将会报错。这对分钟级和日线级数据同样适用。
 
 
-The TradingCalendar Class
+TradingCalendar 类
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``TradingCalendar`` class has many properties we should be thinking about if we were to build our own ``TradingCalendar`` for an exchange. These include properties such as:
+如果我们要构建我们自己的 ``TradingCalendar``  类，其中有许多我们需要考虑的属性，包括：
 
-  - Name of the Exchange
-  - Timezone
-  - Open Time
-  - Close Time
-  - Regular & Ad hoc Holidays
-  - Special Opens & Closes
+  - 交易所名称
+  - 时区
+  - 开市时间
+  - 闭市时间
+  - 固定和临时假期
+  - 临时的开市和闭市时间
 
-And several others. If you'd like to see all of the properties and methods available to you through the ``TradingCalendar`` API, please take a look at the `API Reference <http://www.zipline.io/appendix.html#trading-calendar-api>`__
+如果您想查看 ``TradingCalendar`` 所有的可用属性和方法，请查看 `API Reference <http://www.zipline.io/appendix.html#trading-calendar-api>`__ 。
 
-Now we'll take a look at the London Stock Exchange Calendar :class:`~zipline.utils.calendars.exchange_calendar_lse.LSEExchangeCalendar` as an example below:
+现在来看看伦敦证券交易所日历类： :class:`~zipline.utils.calendars.exchange_calendar_lse.LSEExchangeCalendar` ，如下例所示：
 
 .. code-block:: python
 
@@ -88,7 +89,7 @@ Now we'll take a look at the London Stock Exchange Calendar :class:`~zipline.uti
       ])
 
 
-You can create the ``Holiday`` objects mentioned in ``def regular_holidays(self)` through the `pandas <http://pandas.pydata.org/pandas-docs/stable/>`__ module, ``pandas.tseries.holiday.Holiday``, and also take a look at the `LSEExchangeCalendar <https://github.com/quantopian/zipline/blob/master/zipline/utils/calendars/exchange_calendar_lse.py>`__ code as an example, or take a look at the code snippet below.
+您可以通过 `pandas <http://pandas.pydata.org/pandas-docs/stable/>`__  ，来创建 ``def regular_holidays(self)`` 中使用到的 ``Holiday`` 模块， ``pandas.tseries.holiday.Holiday`` ，也可以查看 `LSEExchangeCalendar <https://github.com/quantopian/zipline/blob/master/zipline/utils/calendars/exchange_calendar_lse.py>`__ 示例，或者参考下面的代码示例。
 
 .. code-block:: python
 
@@ -106,12 +107,14 @@ You can create the ``Holiday`` objects mentioned in ``def regular_holidays(self)
   )
 
 
-Building a Custom Trading Calendar
+编写自定义交易日历
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Now we'll build our own custom trading calendar. This calendar will be used for trading assets that can be traded on a 24/7 exchange calendar. This means that it will be open on Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, and Sunday, and the exchange will open at 12AM and close at 11:59PM. The timezone which we'll use is UTC.
+现在来构建自定义交易日历。此日历将用于 7 * 24 小时交易，
+即它将在周一至周日开放，时间段为上午12点至晚上11点59分。
+使用的时区为 UTC 时区。
 
-First we'll start off by importing some modules that will be useful to us.
+首先引入一些需要的模块：
 
 .. code-block:: python
 
@@ -129,7 +132,7 @@ First we'll start off by importing some modules that will be useful to us.
   from zipline.utils.memoize import lazyval
 
 
-And now we'll actually build this calendar, which we'll call ``TFSExchangeCalendar``:
+现在我们创建了一个名为 ``TFSExchangeCalendar`` 的类：
 
 .. code-block:: python
 
@@ -182,7 +185,7 @@ And now we'll actually build this calendar, which we'll call ``TFSExchangeCalend
       )
 
 
-Conclusions
+结论
 ~~~~~~~~~~~
 
-In order for you to run your algorithm with this calendar, you'll need have a data bundle in which your assets have dates that run through all days of the week. You can read about how to make your own data bundle in the `Writing a New Bundle <http://www.zipline.io/bundles.html#writing-a-new-bundle>`__ documentation, or use the `csvdir bundle <https://github.com/quantopian/zipline/blob/master/zipline/data/bundles/csvdir.py>`__ for creating a bundle from CSV files.
+为了让策略算法能使用这个日历类，需要一个包含所有交易日数据的  bundle 。您可以在 `Writing a New Bundle <http://www.zipline.io/bundles.html#writing-a-new-bundle>`__ 文档中阅读有关如何创建自己的数据包的信息，或者使用 `csvdir bundle <https://github.com/quantopian/zipline/blob/master/zipline/data/bundles/csvdir.py>`__ 从CSV文件创建 bundle .

@@ -1,20 +1,18 @@
 .. _data-bundles:
 
-Data Bundles
+数据 Bundle
 ------------
 
-A data bundle is a collection of pricing data, adjustment data, and an asset
-database. Bundles allow us to preload all of the data we will need to run
-backtests and store the data for future runs.
+一个 bundle 包含价格数据、复权数据和资产数据库。
+Bundle 允许我们预先加载回测所需的所有数据，并保存以备未来使用。
 
 .. _bundles-command:
 
-Discovering Available Bundles
+所有可用 Bundle
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Zipline comes with a few bundles by default as well as the ability to register
-new bundles. To see which bundles we have available, we may run the
-``bundles`` command, for example:
+Zipline 自带了一些 bundle ，也提供添加新 bundle 的功能。
+要查看可用的 bundle ，可以运行 ``bundles`` 命令，例如：
 
 .. code-block:: bash
 
@@ -25,55 +23,50 @@ new bundles. To see which bundles we have available, we may run the
    quandl <no ingestions>
    quantopian-quandl 2016-05-05 20:06:40.894956
 
-The output here shows that there are 3 bundles available:
+此处显示有3个可用的 bundle ：
 
-- ``my-custom-bundle`` (added by the user)
-- ``quandl`` (provided by zipline)
-- ``quantopian-quandl`` (provided by zipline)
+- ``my-custom-bundle`` （用户添加）
+- ``quandl`` （Zipline提供）
+- ``quantopian-quandl`` （Zipline提供）
 
-The dates and times next to the name show the times when the data for this
-bundle was ingested. We have run three different ingestions for
-``my-custom-bundle``. We have never ingested any data for the ``quandl`` bundle
-so it just shows ``<no ingestions>`` instead. Finally, there is only one
-ingestion for ``quantopian-quandl``.
+名称旁的时间显示是 bundle 的下载时间。
+``my-custom-bundle`` 已经下载了三次。
+``quandl`` 从未下载过，所以显示为 ``<no ingestions>`` 。
+最后的 ``quantopian-quandl`` 下载过一次。
 
 .. _ingesting-data:
 
-Ingesting Data
+下载数据
 ~~~~~~~~~~~~~~
 
-The first step to using a data bundle is to ingest the data. The ingestion
-process will invoke some custom bundle command and then write the data to a
-standard location that zipline can find. By default the location where ingested
-data will be written is ``$ZIPLINE_ROOT/data/<bundle>`` where by default
-``ZIPLINE_ROOT=~/.zipline``. The ingestion step may take some time as it could
-involve downloading and processing a lot of data. You'll need a
-`Quandl <https://docs.quandl.com/docs#section-authentication>`__ API key to ingest the default bundle. This can be run with:
+使用 bundle 的第一步是进行下载。下载过程中将调用一些
+bundle 命令，命令会将数据写入 Zipline 指定的位置。
+默认情况下，数据将被写在 ``$ZIPLINE_ROOT/data/<bundle>``
+（默认情况下 ``ZIPLINE_ROOT=~/.zipline`` ）。
+数据获取可能需要一些时间，因为要下载和处理大量数据。你需要一个
+`Quandl <https://docs.quandl.com/docs#section-authentication>`__
+API key 来进行下载。拿到 key 之后可以这样运行：
 
 .. code-block:: bash
 
    $ QUANDL_API_KEY=<yourkey> zipline ingest [-b <bundle>]
 
 
-where ``<bundle>`` is the name of the bundle to ingest, defaulting to ``quandl``.
+``<bundle>`` 是要下载的 bundle 的名称，默认为 ``quandl`` 。
 
-Old Data
+旧数据
 ~~~~~~~~
 
-When the ``ingest`` command is used it will write the new data to a subdirectory
-of ``$ZIPLINE_ROOT/data/<bundle>`` which is named with the current date. This
-makes it possible to look at older data or even run backtests with the older
-copies. Running a backtest with an old ingestion makes it easier to reproduce
-backtest results later.
+使用 ``ingest`` 命令时，它会将新数据写入 ``$ZIPLINE_ROOT/data/<bundle>``
+，并以当前日期命名。因为以日期命名，这让您可以按日期查看旧数据，或用旧数据进行回测。
+使用旧数据进行回测，可以更容易地重现回测结果。
 
-One drawback of saving all of the data by default is that the data directory
-may grow quite large even if you do not want to use the data. As shown earlier,
-we can list all of the ingestions with the :ref:`bundles command
-<bundles-command>`. To solve the problem of leaking old data there is another
-command: ``clean``, which will clear data bundles based on some time
-constraints.
+默认情况下会保存所有历史数据，这样的缺点是数据目录会非常大。
+如前所示，我们可以使用 :ref:`bundles 命令 <bundles-command>`
+列出所有已下载的数据。为了清理这些数据，有一个命令 ``clean``
+，它能根据时间清理过期 bundle 。
 
-For example:
+例如：
 
 .. code-block:: bash
 
@@ -90,28 +83,23 @@ For example:
    $ zipline clean [-b <bundle>] --keep-last <int>
 
 
-Running Backtests with Data Bundles
+使用 bundle 进行回测
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Now that the data has been ingested we can use it to run backtests with the
-``run`` command. The bundle to use can be specified with the ``--bundle`` option
-like:
+现在已经拿到了数据，我们可以使用 ``run`` 命令来进行回测。
+可以像这样用 ``--bundle`` 参数来指定 bundle ：
 
 .. code-block:: bash
 
    $ zipline run --bundle <bundle> --algofile algo.py ...
 
 
-We may also specify the date to use to look up the bundle data with the
-``--bundle-timestamp`` option. Setting the ``--bundle-timestamp`` will cause
-``run`` to use the most recent bundle ingestion that is less than or equal to
-the ``bundle-timestamp``. This is how we can run backtests with older data.
-``bundle-timestamp`` uses a less-than-or-equal-to relationship so that we can
-specify the date that we ran an old backtest and get the same data that would
-have been available to us on that date. The ``bundle-timestamp`` defaults to
-the current day to use the most recent data.
+我们还可以指定 ``--bundle-timestamp`` 选项来查找 bundle 。
+设置 ``--bundle-timestamp`` 会让 ``run``
+使用小于等于所指定日期的最新 bundle ，这就是我们使用旧数据进行回测的方式。
+``--bundle-timestamp`` 默认使用当天日期，结果就是会使用最新数据。
 
-Default Data Bundles
+默认 Bundle
 ~~~~~~~~~~~~~~~~~~~~
 
 .. _quandl-data-bundle:
@@ -119,47 +107,41 @@ Default Data Bundles
 Quandl WIKI Bundle
 ``````````````````
 
-By default zipline comes with the ``quandl`` data bundle which uses quandl's
-`WIKI dataset <https://www.quandl.com/data/WIKI>`_. The quandl data bundle
-includes daily pricing data, splits, cash dividends, and asset metadata. To
-ingest the ``quandl`` data bundle we recommend creating an account on quandl.com
-to get an API key to be able to make more API requests per day. Once we have an
-API key we may run:
+默认情况下，Zipline 自带了 ``quandl`` bundle ，它使用 quandl 的
+`WIKI dataset <https://www.quandl.com/data/WIKI>`_ 。
+quandl bundle 包括日线价格数据、拆股、现金股息和资产元数据。
+要使用 ``quandl`` bundle 的话，我们建议在 quandl.com 上创建一个帐户
+并获取 API key，这样就能使用更多 API 请求次数。有了 API key 可以这样运行：
 
 .. code-block:: bash
 
    $ QUANDL_API_KEY=<api-key> zipline ingest -b quandl
 
-though we may still run ``ingest`` as an anonymous quandl user (with no API
-key). We may also set the ``QUANDL_DOWNLOAD_ATTEMPTS`` environment variable to
-an integer which is the number of attempts that should be made to download data
-from quandls servers. By default ``QUANDL_DOWNLOAD_ATTEMPTS`` will be 5, meaning
-that we will retry each attempt 5 times.
+在不登录（没有 API key）的情况下运行 ``ingest`` ，
+我们可以设置 ``QUANDL_DOWNLOAD_ATTEMPTS`` 环境变量，
+来指定从 quandl 服务器下载数据的尝试次数。默认情况下，
+``QUANDL_DOWNLOAD_ATTEMPTS`` 设置为5，意思是每次请求尝试5次。
 
 .. note::
 
-   ``QUANDL_DOWNLOAD_ATTEMPTS`` is not the total number of allowed failures,
-   just the number of allowed failures per request. The quandl loader will make
-   one request per 100 equities for the metadata followed by one request per
-   equity.
+   ``QUANDL_DOWNLOAD_ATTEMPTS`` 不是总次数，
+   而是每个请求允许的失败次数。quandl 下载器为
+   每 100 个股票请求一次元数据，后跟一个股票数据下载请求。
 
 
-Writing a New Bundle
+创建新的 Bundle
 ~~~~~~~~~~~~~~~~~~~~
 
-Data bundles exist to make it easy to use different data sources with
-zipline. To add a new bundle, one must implement an ``ingest`` function.
+Bundle 功能让 Zipline 方便使用来自各处的数据。
+您也可以通过实现 ``ingest`` 函数，编写添加自己的 bundle 。
 
-The ``ingest`` function is responsible for loading the data into memory and
-passing it to a set of writer objects provided by zipline to convert the data to
-zipline's internal format. The ingest function may work by downloading data from
-a remote location like the ``quandl`` bundle or it may just
-load files that are already on the machine. The function is provided with
-writers that will write the data to the correct location transactionally. If an
-ingestion fails part way through the bundle will not be written in an incomplete
-state.
+``ingest`` 函数负责将数据加载到内存，并将数据传递给 Zipline
+提供的一组 writer 对象，以将数据转换为 Zipline 的内部格式。
+ingest 函数可以下载像 ``quandl`` 这样的 bundle ，也可以直接加载
+本机的文件。ingest 函数支持事务，以便将数据完整地写到正确位置。
+如果部分失败，将不会写入不完整信息。
 
-The signature of the ingest function should be:
+ingest 的声明如下：
 
 .. code-block:: python
 
@@ -178,141 +160,117 @@ The signature of the ingest function should be:
 ``environ``
 ```````````
 
-``environ`` is a mapping representing the environment variables to use. This is
-where any custom arguments needed for the ingestion should be passed, for
-example: the ``quandl`` bundle uses the enviornment to pass the API key and the
-download retry attempt count.
+``environ`` 表示要使用的环境变量的字典。通过它可以传入需要的环境变量。
+如 ``quandl`` 需要传入 API key 和最大下载重试次数。
 
 ``asset_db_writer``
 ```````````````````
 
-``asset_db_writer`` is an instance of :class:`~zipline.assets.AssetDBWriter`.
-This is the writer for the asset metadata which provides the asset lifetimes and
-the symbol to asset id (sid) mapping. This may also contain the asset name,
-exchange and a few other columns. To write data, invoke
-:meth:`~zipline.assets.AssetDBWriter.write` with dataframes for the various
-pieces of metadata. More information about the format of the data exists in the
-docs for write.
+``asset_db_writer`` 是 :class:`~zipline.assets.AssetDBWriter` 的实例。
+这个 writer 是为资产元数据提供的，它提供资产生命周期和符号到资产 ID（sid）的映射。
+其中也可能包含资产名称、交易所和其他一些字段。要写入数据，请调用
+:meth:`~zipline.assets.AssetDBWriter.write` 并传入包含各种元数据的 DataFrame。
+有关数据格式的更多信息，可在 writer 的文档中找到。
 
 ``minute_bar_writer``
 `````````````````````
 
-``minute_bar_writer`` is an instance of
-:class:`~zipline.data.minute_bars.BcolzMinuteBarWriter`. This writer is used to
-convert data to zipline's internal bcolz format to later be read by a
-:class:`~zipline.data.minute_bars.BcolzMinuteBarReader`. If minute data is
-provided, users should call
-:meth:`~zipline.data.minute_bars.BcolzMinuteBarWriter.write` with an iterable of
-(sid, dataframe) tuples. The ``show_progress`` argument should also be forwarded
-to this method. If the data source does not provide minute level data, then
-there is no need to call the write method. It is also acceptable to pass an
-empty iterator to :meth:`~zipline.data.minute_bars.BcolzMinuteBarWriter.write`
-to signal that there is no minutely data.
+``minute_bar_writer`` 是 :class:`~zipline.data.minute_bars.BcolzMinuteBarWriter` 的实例。
+这个 writer 用来将数据转化为 Zipline 内部可识别的 bcolz 格式，以供
+:class:`~zipline.data.minute_bars.BcolzMinuteBarReader` 读取。
+如果提供了分钟级数据，用户需调用 :meth:`~zipline.data.minute_bars.BcolzMinuteBarWriter.write`
+并传入 [(sid, DataFrame)] 类型的 tuple ，第二个参数则是 ``show_progress`` 。
+如果数据源没提供分钟级数据，则没必要调用这个 write 函数，或向
+:meth:`~zipline.data.minute_bars.BcolzMinuteBarWriter.write`
+第一个参数传递空 list ，来表明没有分钟级数据。
 
 .. note::
 
-   The data passed to
-   :meth:`~zipline.data.minute_bars.BcolzMinuteBarWriter.write` may be a lazy
-   iterator or generator to avoid loading all of the minute data into memory at
-   a single time. A given sid may also appear multiple times in the data as long
-   as the dates are strictly increasing.
+   可以将生成器和迭代器传递给 :meth:`~zipline.data.minute_bars.BcolzMinuteBarWriter.write`
+   以免分钟级数据占用过多内存。日期严格增加的话，sid 也可能在数据中出现多次。
 
 ``daily_bar_writer``
 ````````````````````
 
-``daily_bar_writer`` is an instance of
-:class:`~zipline.data.bcolz_daily_bars.BcolzDailyBarWriter`. This writer is
-used to convert data into zipline's internal bcolz format to later be read by a
-:class:`~zipline.data.bcolz_daily_bars.BcolzDailyBarReader`. If daily data is
-provided, users should call
-:meth:`~zipline.data.minute_bars.BcolzDailyBarWriter.write` with an iterable of
-(sid dataframe) tuples. The ``show_progress`` argument should also be forwarded
-to this method. If the data shource does not provide daily data, then there is
-no need to call the write method. It is also acceptable to pass an empty
-iterable to :meth:`~zipline.data.minute_bars.BcolzMinuteBarWriter.write` to
-signal that there is no daily data. If no daily data is provided but minute data
-is provided, a daily rollup will happen to service daily history requests.
+``daily_bar_writer`` 是 :class:`~zipline.data.bcolz_daily_bars.BcolzDailyBarWriter` 的实例。
+这个 writer 用来将数据转化为 Zipline 内部可识别的 bcolz 格式，以供
+:class:`~zipline.data.bcolz_daily_bars.BcolzDailyBarReader` 读取。
+如果提供了日线级数据，用户需调用 :meth:`~zipline.data.minute_bars.BcolzDailyBarWriter.write`
+并传入 [(sid, DataFrame)] 类型的 tuple ，第二个参数则是 ``show_progress`` 。
+如果数据源没提供日线级数据，则没必要调用这个 write 函数，或向
+:meth:`~zipline.data.minute_bars.BcolzMinuteBarWriter.write`
+第一个参数传递空 list ，来表明没有日线级数据。
+如果提供了分钟级数据而没有提供日线数据，则会由分钟级数据生成日线数据。
 
 .. note::
 
-   Like the ``minute_bar_writer``, the data passed to
-   :meth:`~zipline.data.minute_bars.BcolzMinuteBarWriter.write` may be a lazy
-   iterable or generator to avoid loading all of the data into memory at once.
-   Unlike the ``minute_bar_writer``, a sid may only appear once in the data
-   iterable.
+   和 ``minute_bar_writer`` 相同，可以将生成器和迭代器传递给
+   :meth:`~zipline.data.minute_bars.BcolzMinuteBarWriter.write` 以免占用过多内存。
+   和 ``minute_bar_writer`` 不同的是，一个 sid 只会出现一次。
 
 ``adjustment_writer``
 `````````````````````
 
-``adjustment_writer`` is an instance of
-:class:`~zipline.data.adjustments.SQLiteAdjustmentWriter`. This writer is
-used to store splits, mergers, dividends, and stock dividends. The data should
-be provided as dataframes and passed to
-:meth:`~zipline.data.adjustments.SQLiteAdjustmentWriter.write`. Each of
-these fields are optional, but the writer can accept as much of the data as you
-have.
+``adjustment_writer`` 是
+:class:`~zipline.data.adjustments.SQLiteAdjustmentWriter` 的实例。
+这个 writer 使用来保存分股、合股、股息分红的。
+数据应该以 DataFrame 的格式传递给
+:meth:`~zipline.data.adjustments.SQLiteAdjustmentWriter.write` 。
+所有参数都是可选的，如果您的数据量很大，这个 writer 也都可以接收。
 
 ``calendar``
 ````````````
 
-``calendar`` is an instance of
-:class:`zipline.utils.calendars.TradingCalendar`. The calendar is provided to
-help some bundles generate queries for the days needed.
+``calendar`` 是 :class:`zipline.utils.calendars.TradingCalendar` 的实例。
+calendar 用来帮助生成和日期有关的查询。
 
 ``start_session``
 `````````````````
 
-``start_session`` is a :class:`pandas.Timestamp` object indicating the first
-day that the bundle should load data for.
+``start_session`` 是 :class:`pandas.Timestamp` 的实例，
+表示 bundle 加载的起始日期。
 
 ``end_session``
 ```````````````
 
-``end_session`` is a :class:`pandas.Timestamp` object indicating the last day
-that the bundle should load data for.
+``end_session`` 是 :class:`pandas.Timestamp` 的实例，
+表示 bundle 加载的结束日期。
 
 ``cache``
 `````````
 
-``cache`` is an instance of :class:`~zipline.utils.cache.dataframe_cache`. This
-object is a mapping from strings to dataframes. This object is provided in case
-an ingestion crashes part way through. The idea is that the ingest function
-should check the cache for raw data, if it doesn't exist in the cache, it should
-acquire it and then store it in the cache. Then it can parse and write the
-data. The cache will be cleared only after a successful load, this prevents the
-ingest function from needing to redownload all the data if there is some bug in
-the parsing. If it is very fast to get the data, for example if it is coming
-from another local file, then there is no need to use this cache.
+``cache`` 是 :class:`~zipline.utils.cache.dataframe_cache` 的实例。
+它是一个 string 到 DataFrame 映射的字典结构。
+它的作用是对 ingest 过程出现的错误退出提供支持。
+基本逻辑是， ingest 首先检查是否有缓存，没有的话，获取原始数据并保存到缓存中，然后解析并写入数据。
+只有在成功加载后才会清除缓存，这可以防止在解析中出现错误而需要重新下载所有数据。
+如果获取数据非常快，例如加载本地文件，那就不需要使用缓存功能。
 
 ``show_progress``
 `````````````````
 
-``show_progress`` is a boolean indicating that the user would like to receive
-feedback about the ingest function's progress fetching and writing the
-data. Some examples for where to show how many files you have downloaded out of
-the total needed, or how far into some data conversion the ingest function
-is. One tool that may help with implementing ``show_progress`` for a loop is
-:class:`~zipline.utils.cli.maybe_show_progress`. This argument should always be
-forwarded to ``minute_bar_writer.write`` and ``daily_bar_writer.write``.
+``show_progress`` 是一个布尔型变量，它表示用户是否希望看到下载和写入数据的进度。
+在一些例子中，进度条指示已下载文件数比例，还有一些指示文件转换进度。
+能够帮助实现 ``show_progress`` 循环功能的工具是
+:class:`~zipline.utils.cli.maybe_show_progress` 。
+这个参数应该始终被转发给 ``minute_bar_writer.write`` 和 ``daily_bar_writer.write`` 。
 
 
 ``output_dir``
 ``````````````
 
-``output_dir`` is a string representing the file path where all the data will be
-written. ``output_dir`` will be some subdirectory of ``$ZIPLINE_ROOT`` and will
-contain the time of the start of the current ingestion. This can be used to
-directly move resources here if for some reason your ingest function can produce
-it's own outputs without the writers. For example, the ``quantopian:quandl``
-bundle uses this to directly untar the bundle into the ``output_dir``.
+``output_dir`` 是一个字符型变量，表示数据写入的位置。
+``output_dir`` 是 ``$ZIPLINE_ROOT`` 的子目录，它包含了运行的开始时间。
+如果由于某些原因，不使用 writers 保存数据，可以这部分数据存放到这里。
+例如 ``quantopian:quandl`` 将数据解压到了 ``output_dir`` 。
 
-Ingesting Data from .csv Files
+从.csv文件中加载数据
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Zipline provides a bundle called ``csvdir``, which allows users to ingest data
-from ``.csv`` files. The format of the files should be in OHLCV format, with dates,
-dividends, and splits. A sample is provided below. There are other samples for testing
-purposes in ``zipline/tests/resources/csvdir_samples``.
+Zipline 提供了一个名为 ``csvdir`` 的包，它允许用户从
+``.csv`` 文件加载数据。文件的格式应为 OHLCV 格式，
+并带有带日期、分红和分股。下面提供了一个例子，更多例子可以在
+``zipline/tests/resources/csvdir_samples`` 找到。
 
 .. code-block:: text
 
@@ -325,25 +283,25 @@ purposes in ``zipline/tests/resources/csvdir_samples``.
 	 2012-01-10,60.844284,60.857143,60.214287,60.462856,64549100,0.0,1.0
 	 2012-01-11,60.382858,60.407143,59.901428,60.364285,53771200,0.0,1.0
 
-Once you have your data in the correct format, you can edit your ``extension.py`` file in
-``~/.zipline/extension.py`` and import the csvdir bundle, along with ``pandas``.
+组织好上面格式的数据之后，您可以编辑 ``~/.zipline/extension.py``
+导入 csvdir 和 ``pandas`` 包。
 
 .. code-block:: python
 
 	 import pandas as pd
-	 
+
 	 from zipline.data.bundles import register
 	 from zipline.data.bundles.csvdir import csvdir_equities
 
-We'll then want to specify the start and end sessions of our bundle data:
+然后，指定开始和结束时间：
 
 .. code-block:: python
 
 	 start_session = pd.Timestamp('2016-1-1', tz='utc')
 	 end_session = pd.Timestamp('2018-1-1', tz='utc')
 
-And then we can ``register()`` our bundle, and pass the location of the directory in which
-our ``.csv`` files exist:
+然后我们可以传入 ``.csv`` 文件路径，用 ``register()``
+注册我们的自己编写的 bundle ：
 
 .. code-block:: python
 
@@ -358,7 +316,7 @@ our ``.csv`` files exist:
         end_session=end_session
     )
 
-To finally ingest our data, we can run:
+运行命令导入自己编写的 bundle ：
 
 .. code-block:: bash
 
@@ -367,12 +325,11 @@ To finally ingest our data, we can run:
 	 Loading custom pricing data:   [########################------------]   66% | FAKE1: sid 1
 	 Loading custom pricing data:   [####################################]  100% | FAKE2: sid 2
 	 Loading custom pricing data:   [####################################]  100%
-	 Merging daily equity files:  [####################################]  
-	 
+	 Merging daily equity files:  [####################################]
+
 	 # optionally, we can pass the location of our csvs via the command line
 	 $ CSVDIR=/path/to/your/csvs zipline ingest -b custom-csvdir-bundle
 
 
-If you would like to use equities that are not in the NYSE calendar, or the existing zipline calendars,
-you can look at the ``Trading Calendar Tutorial`` to build a custom trading calendar that you can then pass
-the name of to ``register()``.
+如果您想使用不在纽约证券交易所和 Zipline 日历中的股票数据，您可以参照
+``交易日历`` 章节来建立您的自定义交易日历，并使用 ``register()`` 导入。

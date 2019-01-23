@@ -1,33 +1,29 @@
-Release Process
+发布流程
 ---------------
 
 .. include:: dev-doc-message.txt
 
 
-Updating the Release Notes
+更新发布说明
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When we are ready to ship a new release of zipline, edit the :doc:`releases`
-page. We will have been maintaining a whatsnew file while working on the release
-with the new version. First, find that file in:
-``docs/source/whatsnew/<version>.txt``. It will be the highest version number.
-Edit the release date field to be today's date in the format:
+当我们准备发布新版本的 Zipline 时，会编辑 :doc:`releases` 页。
+我们将在发布时维护一个新版本的 whatsnew 文件。
+首先，在以下位置找到该文件： ``docs/source/whatsnew/<version>.txt`` 。
+它的版本号将是当前最高版本。使用以下格式的日期格式：
 
 ::
 
    <month> <day>, <year>
 
 
-for example, November 6, 2015.
-Remove the active development warning from the whatsnew, since it will no
-longer be pending release.
-Update the title of the release from "Development" to "Release x.x.x" and
-update the underline of the title to match the title's width.
+例如： November 6, 2015。
+从 whatsnew 中删除"功能正在开发"的警告，因为即将发布。
+将发布的标题从“开发”更新为“发布xxx”，更新标题的下划线以匹配标题的宽度。
 
-If you are renaming the release at this point, you'll need to git mv the file
-and also update releases.rst to reference the renamed file.
+如果此时要重命名该版本，则需要 git mv 该文件，并更新 releases.rst 以引用重命名的文件。
 
-To build and view the docs locally, run:
+要在本地构建和查看文档，请运行：
 
 .. code-block:: bash
 
@@ -35,16 +31,14 @@ To build and view the docs locally, run:
    $ make html
    $ {BROWSER} build/html/index.html
 
-Updating the Python stub files
+更新 Python stub 文件
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-PyCharm and other linters and type checkers can use `Python stub files
-<https://www.python.org/dev/peps/pep-0484/#stub-files>`__ for type hinting. For
-example, we generate stub files for the :mod:`~zipline.api` namespace, since that
-namespace is populated at import time by decorators on TradingAlgorithm
-methods. Those functions are therefore hidden from static analysis tools, but
-we can generate static files to make them available. Under **Python 3**, run
-the following to generate any stub files:
+PyCharm 和其他代码类型检查器会使用 `Python stub 文件 <https://www.python.org/dev/peps/pep-0484/#stub-files>`__
+用于类型提示。我们为 :mod:`~zipline.api` 生成了 stub 文件，
+因为在 TradingAlgorithm 上使用的装饰器导入了它们。
+因此，这些功能对静态分析工具是隐藏的，但是我们可以生成静态文件以使它们可用。
+在 **Python 3** 下，运行下面命令生成 stub 文件：
 
 .. code-block:: bash
 
@@ -52,24 +46,20 @@ the following to generate any stub files:
 
 .. note::
 
-   In order to make stub consumers aware of the classes referred to in the
-   stub, the stub file should import those classes.  However, since
-   ``... import *`` and ``... import ... as ...`` in a stub file will export
-   those imports, we import the names explicitly.  For the stub for
-   ``zipline.api``, this is done in a header string in the
-   ``gen_type_stubs.py`` script mentioned above.  If new classes are added as
-   parameters or return types of ``zipline.api`` functions, then new imports
-   should be added to that header.
+   为了使读取 stub 的工具知道所引用的类， stub 文件应该导入这些类。
+   但是，因为 stub 文件中的 ``... import *`` 和 ``... import ... as ...``
+   将会再次导出这些引入，所以我们显式导入名称。对于 ``zipline.api`` 的 stub 文件，
+   这在上面提到的 ``gen_type_stubs.py`` 脚本的头部字符串完成。
+   如果添加了新参数或返回了类型为 ``zipline.api`` 的函数，新的 import 应该被添加到该标头。
 
-Updating the ``__version__``
+更新 ``__version__``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-We use `versioneer <https://github.com/warner/python-versioneer>`__ to
-manage the ``__version__`` and ``setup.py`` version. This means that we pull
-this information from our version control's tags to ensure that they stay in
-sync and to have very fine grained version strings for development installs.
+我们使用 `versioneer <https://github.com/warner/python-versioneer>`__ 来管理
+``__version__`` 和 ``setup.py`` 的版本。我们从版本控制系统的 tag 中获取版本信息，
+这样可以确保版本信息在版本控制系统和代码中是同步的。
 
-To upgrade the version use the git tag command like:
+要升级版本，请使用 git tag 命令，如：
 
 .. code-block:: bash
 
@@ -77,29 +67,27 @@ To upgrade the version use the git tag command like:
    $ git push && git push --tags
 
 
-This will push the the code and the tag information.
+这将推送代码和标签信息。
 
-Next, click the "Draft a new release" button on the `zipline releases page
-<https://github.com/quantopian/zipline/releases>`__.  For the new release,
-choose the tag you just pushed, and publish the release.
+接下来，在`zipline releases page <https://github.com/quantopian/zipline/releases>`__
+单击 “Draft a new release” 按钮。对于新版本，选择刚刚推送的标签，然后发布该版本。
 
-Uploading PyPI packages
+更新 PyPI 包
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 ``sdist``
 ^^^^^^^^^
 
-To build the ``sdist`` (source distribution) run:
+要构建 ``sdist`` （源代码分发），在 Zipline 的根目录运行：
 
 .. code-block:: bash
 
    $ python setup.py sdist
 
 
-from the zipline root. This will create a gzipped tarball that includes all the
-python, cython, and miscellaneous files needed to install zipline. To test that
-the source dist worked correctly, ``cd`` into an empty directory, create a new
-virtualenv and then run:
+这将创建一个包含所有 python 、 cython 和各类内容的 gzip 压缩包。
+要测试 dist 是否工作正常， ``cd`` 到一个空目录，创建一个新的
+virtualenv 然后运行：
 
 
 .. code-block:: bash
@@ -107,41 +95,35 @@ virtualenv and then run:
    $ pip install <zipline-root>/dist/zipline-<major>.<minor>.<micro>.tar.gz
    $ python -c 'import zipline;print(zipline.__version__)'
 
-This should print the version we are expecting to release.
+这应该打印我们期望发布的新版本号。
 
 .. note::
 
-   It is very important to both ``cd`` into a clean directory and make a clean
-   virtualenv. Changing directories ensures that we have included all the needed
-   files in the manifest. Using a clean virtualenv ensures that we have listed
-   all the required packages.
+   ``cd`` 到一个空的目录并创建纯净的 virtualenv 环境很重要。
+   更改到空目录可确保我们已包含所有清单中必需的文件。
+   使用干净的 virtualenv 能确保我们已经列出所有必需的依赖包。
 
-Now that we have tested the package locally, it should be tested using the test
-PyPI server.
+现在我们已经在本地测试了发布包，现在应该使用 PyPI 测试服务器进行测试了。
 
 .. code-block:: bash
 
    $ pip install twine
    $ twine upload --repository-url https://test.pypi.org/legacy/ dist/zipline-<version-number>.tar.gz
 
-Twine will prompt you for a username and password, which you should have access
-to if you're authorized to push Zipline releases.
+Twine 将提示您输入用户名和密码，如果您被授权发布 Zipline 版本，您应该会有用户名和密码。
 
 .. note::
 
-   If the package version has been taken: locally update your setup.py to
-   override the version with a new number. Do not use the next version, just
-   append a ``.<nano>`` section to the current version. PyPI prevents the same
-   package version from appearing twice, so we need to work around this when
-   debugging packaging problems on the test server.
+   如果版本号已被使用：在本地将 setup.py 更新为一个新版本号。
+   不要使用下一个版本号，只需要在当前版本附加一个 ``.<nano>`` 。
+   PyPI 防止相同版本号出现两次，所以我们需要在测试服务器上调试打包时解决这个问题。
 
    .. warning::
 
-      Do not commit the temporary version change.
+      不要提交临时版本更改。
 
-
-This will upload zipline to the pypi test server. To test installing from pypi,
-create a new virtualenv, ``cd`` into a clean directory and then run:
+这会将 zipline 上传到 pypi 测试服务器。要测试从 pypi 安装，
+创建一个新的 virtualenv ， ``cd`` 到一个空目录然后运行：
 
 .. code-block:: bash
 
@@ -149,10 +131,9 @@ create a new virtualenv, ``cd`` into a clean directory and then run:
    $ python -c 'import zipline;print(zipline.__version__)'
 
 
-This should pull the package you just uploaded and then print the version
-number.
+这应该下载您刚刚上传的包，然后打印版本号。
 
-Now that we have tested locally and on PyPI test, it is time to upload to PyPI:
+现在我们已经在本地和 PyPI 进行了测试，现在该上传到正式的 PyPI 服务器了：
 
 .. code-block:: bash
 
@@ -161,34 +142,27 @@ Now that we have tested locally and on PyPI test, it is time to upload to PyPI:
 ``bdist``
 ^^^^^^^^^
 
-Because zipline now supports multiple versions of numpy, we're not building
-binary wheels, since they are not tagged with the version of numpy with which
-they were compiled.
+因为 zipline 现在支持 numpy 多个版本，所以我们没有构建二进制 wheel ，因为没有使用特定版本。
 
-Documentation
+文档
 ~~~~~~~~~~~~~
 
-To update `zipline.io <http://www.zipline.io/index.html>`__, checkout the
-latest master and run:
+要更新 `zipline.io <http://www.zipline.io/index.html>`__ ，检出最新的 master 分支并运行：
 
 .. code-block:: python
 
     python <zipline_root>/docs/deploy.py
 
-This will build the documentation, checkout a fresh copy of the ``gh-pages``
-git branch, and copy the built docs into the zipline root.
+这将会重新构建文档，签出 git 的 ``gh-pages`` 分支，并将构建的文档复制到 Zipline 根目录中。
 
 .. note::
 
-   The docs should always be built with **Python 3**. Many of our api functions
-   are wrapped by preprocessing functions which accept \*args and \**kwargs. In
-   Python 3, sphinx will respect the ``__wrapped__`` attribute and display the
-   correct arguments.
+   应始终使用 **Python 3** 构建文档。许多 api 包裹的预处理函数接受 \*args 和 \**kwargs 。
+   在 Python 3， sphinx 将正确处理 ``__wrapped__`` 属性并显示正确的参数。
 
-Now, using our browser of choice, view the ``index.html`` page and verify that
-the docs look correct.
+现在，使用浏览器查看 ``index.html`` 并验证是否正确。
 
-Once we are happy, push the updated docs to the GitHub ``gh-pages`` branch.
+如果没有问题，将更新的文档推送到 GitHub 的 ``gh-pages`` 分支。
 
 .. code-block:: bash
 
@@ -196,51 +170,45 @@ Once we are happy, push the updated docs to the GitHub ``gh-pages`` branch.
    $ git commit -m "DOC: update zipline.io"
    $ git push origin gh-pages
 
-`zipline.io <http://www.zipline.io/index.html>`__ will update in a few moments.
+`zipline.io <http://www.zipline.io/index.html>`__ 会在几分钟后更新。
 
-Uploading conda packages
+更新 conda 包
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-`Travis <https://travis-ci.org/quantopian/zipline>`__ and
+`Travis <https://travis-ci.org/quantopian/zipline>`__ 和
 `AppVeyor <https://ci.appveyor.com/project/quantopian/zipline/branch/master>`__
-build zipline conda packages for us (for Linux/OSX and Windows respectively).
-Once they have built and uploaded to anaconda.org the zipline packages for the
-release commit to master, we should move those packages from the "ci" label to
-the "main" label. We should also do this for any packages we uploaded for
-zipline's dependencies. You can do this from the
-`anaconda.org web interface <https://anaconda.org/Quantopian/repo>`__.
-This is also a good time to remove all the old "ci" packages from anaconda.
+为我们构建 zipline conda 包（分别用于 Linux / macOS 和 Windows ）。
+一旦他们构建 master 的发布包并上传到anaconda.org ，
+我们应该将这些包从 “ci” 标签移到 “main” 标签。
+对于我们上传的所有依赖包，我们也应该这样做。您可以从这里做到这一点
+`anaconda.org web界面<https://anaconda.org/Quantopian/repo>`__ 。
+这也是从 anaconda 中删除所有旧 “ci” 包的好时机。
 
-To build the conda packages for zipline locally, run:
+要在本地构建 conda 包，请运行：
 
 .. code-block:: bash
 
    $ python etc/conda_build_matrix.py
 
-If all of the builds succeed, then this will not print anything and exit with
-``EXIT_SUCCESS``. If there are build issues, we must address them and decide
-what to do.
+如果所有构建成功，那么将不会打印任何内容，之后会以 ``EXIT_SUCCESS`` 退出。
+如果存在构建问题，我们必须解决它。
 
-Once all of the builds in the matrix pass, we can upload them to anaconda with:
+如果所有构建都通过，我们就可以将它们上传到 anaconda ：
 
 .. code-block:: bash
 
    $ python etc/conda_build_matrix.py --upload
 
-If you would like to test this command by uploading to a different user, this
-may be specified with the ``--user`` flag.
+如果您想上传给其他用户测试，可以使用 ``--user`` 指定。
 
-Next Commit
+下一个 Commit
 ~~~~~~~~~~~
 
-Push a new commit post-release that adds the whatsnew for the next release,
-which should be titled according to a micro version increment. If that next
-release turns out to be a major/minor version increment, the file can be
-renamed when that's decided. You can use ``docs/source/whatsnew/skeleton.txt``
-as a template for the new file.
+为下一个版本添加 whatsnew 时，应根据次版本定义标题。
+如果发布是主/次版本增量，文件可以在需要时重命名。
+您可以使用 ``docs/source/whatsnew/skeleton.txt`` 作为新文件的模板。
 
-Include the whatsnew file in ``docs/source/releases.rst``. New releases should
-appear at the top. The syntax for this is:
+在 ``docs/source/releases.rst`` 中包含新的 whatsnew 文件，新版本就会出现在顶部。语法是：
 
 ::
 

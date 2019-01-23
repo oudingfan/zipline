@@ -1,36 +1,28 @@
 .. _metrics:
 
-Risk and Performance Metrics
+风险和绩效指标
 ----------------------------
 
-The risk and performance metrics are summarizing values calculated by Zipline
-when running a simulation. These metrics can be about the performance of an
-algorithm, like returns or cash flow, or the riskiness of an algorithm, like
-volatility or beta. Metrics may be reported minutely, daily, or once at the end
-of a simulation. A single metric may choose to report at multiple time-scales
-where appropriate.
+风险和绩效指标总结了 Zipline 的回测结果。
+这些指标可以度量策略的表现，如收益、现金流、风险度、波动性、
+beta 值。度量指标能以分钟级、日线级或在回测完成时报告。
+一个指标可以在多个时间维度上进行报告。
 
-Metrics Sets
+指标集
 ~~~~~~~~~~~~
 
-Zipline groups risk and performance metrics into collections called "metrics
-sets". A single metrics set defines all of the metrics to track during a single
-backtest. A metrics set may contain metrics that report at different time
-scales. The default metrics set will compute a host of metrics, such as
-algorithm returns, volatility, Sharpe ratio, and beta.
+Zipline 将风险和绩效指标打包为“指标集”。一个指标集定义了在一次回测中所有的指标。
+指标集包含不同时间维度的指标。默认指标集将计算一系列指标，如策略收益、波动率、夏普比率和 beta 值。
 
-Selecting the Metrics Set
+选择指标集
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When running a simulation, the user may select the metrics set to report. How
-you select the metrics set depends on the interface being used to run the
-algorithm.
+运行一次回测时，用户可以选择指标集来查看回测报告。怎样选择指标集取决于运行策略的环境。
 
-Command Line and IPython Magic
+命令行和 IPython
 ``````````````````````````````
 
-When running with the command line or IPython magic interfaces, the metrics set
-may be selected by passing the ``--metrics-set`` argument. For example:
+当运行在命令行和 IPython 下时，指标集可以通过传递 ``--metrics-set`` 参数来选择。例如：
 
 .. code-block:: bash
 
@@ -39,32 +31,28 @@ may be selected by passing the ``--metrics-set`` argument. For example:
 ``run_algorithm``
 `````````````````
 
-When running through the :func:`~zipline.run_algorithm` interface, the metrics
-set may be passed with the ``metrics_set`` argument. This may either be the name
-of a registered metrics set, or a set of metric object. For example:
+当通过 :func:`~zipline.run_algorithm` 函数来运行回测时，指标集可以通过传递
+``metrics_set`` 来选择。参数可以是指标集的名称或是实例。例如：
 
 .. code-block:: python
 
    run_algorithm(..., metrics_set='my-metrics-set')
    run_algorithm(..., metrics_set={MyMetric(), MyOtherMetric(), ...})
 
-Running Without Metrics
+不带指标运行
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Computing risk and performance metrics is not free, and contributes to the total
-runtime of a backtest. When actively developing an algorithm, it is often
-helpful to skip these computations to speed up the debugging cycle. To disable
-the calculation and reporting of all metrics, users may select the built-in
-metrics set ``none``. For example:
+计算风险和绩效是有开销的，它会增加回测的运行时间。在开发过程中，跳过这些指标的计算能够节省调试时间。
+要跳过这些计算，用户可以将默认选择的指标集设置为 ``none`` ，例如：
 
 .. code-block:: python
 
    $ zipline run algorithm.py -s 2014-01-01 -e 2014-02-01 --metrics-set none
 
-Defining New Metrics
+创建新指标
 ~~~~~~~~~~~~~~~~~~~~
 
-A metric is any object that implements some subset of the following methods:
+一个指标实现了下面一个或多个方法：
 
 - ``start_of_simulation``
 - ``end_of_simulation``
@@ -72,24 +60,18 @@ A metric is any object that implements some subset of the following methods:
 - ``end_of_session``
 - ``end_of_bar``
 
-These functions will be called at the time indicated by their name, at which
-point the metric object may collect any needed information and optionally report
-a computed value. If a metric does not need to do any processing at one of these
-times, it may omit a definition for the given method.
+这些函数会在需要的时候由系统调用，以收集所需要的信息。如果在函数中并不需要做任何处理，则可以省略它的定义。
 
-A metric should be reusable, meaning that a single instance of a metric class
-should be able to be used across multiple backtests. Metrics do not need to
-support multiple simulations at once, meaning that internal caches and data are
-consistent between ``start_of_simulation`` and ``end_of_simulation``.
+指标应该被设计为可重用，即一个指标类的实例可以在多个回测中被使用。指标不需要
+一次支持多个回测，只需要保证 ``start_of_simulation`` 和 ``end_of_simulation``
+中的内部数据和缓存对每个回测是一致的。
 
 ``start_of_simulation``
 ```````````````````````
 
-The ``start_of_simulation`` method should be thought of as a per-simulation
-constructor. This method should initialize any caches needed for the duration of
-a single simulation.
+``start_of_simulation`` 可以被理解为构造函数。在函数内部应当初始化相关缓存。
 
-The ``start_of_simulation`` method should have the following signature:
+``start_of_simulation`` 函数定义如下：
 
 .. code-block:: python
 
@@ -101,31 +83,25 @@ The ``start_of_simulation`` method should have the following signature:
                            benchmark_source):
        ...
 
-``ledger`` is an instance of :class:`~zipline.finance.ledger.Ledger` which is
-maintaining the simulation's state. This may be used to lookup the algorithm's
-starting portfolio values.
+``ledger`` 是 :class:`~zipline.finance.ledger.Ledger` 类的实例，它保存了回测的状态。
+可以用来查询回测起始金额。
 
-``emission_rate`` is a string representing the smallest frequency at which
-metrics should be reported. ``emission_rate`` will be either ``minute`` or
-``daily``. When ``emission_rate`` is ``daily``, ``end_of_bar`` will not be
-called at all.
+``emission_rate`` 是一个字符串类型的变量，它表示指标报告的最小频率。
+``emission_rate`` 可以是 ``minute`` 或 ``daily`` 。
+当 ``emission_rate`` 是 ``daily`` 时， ``end_of_bar`` 将不会被调用。
 
-``trading_calendar`` is an instance of
-:class:`~zipline.utils.calendars.TradingCalendar` which is the trading calendar
-being used by the simulation.
+``trading_calendar`` 是 :class:`~zipline.utils.calendars.TradingCalendar` 的实例，
+是回测所用的交易日历类。
 
-``sessions`` is a :class:`pandas.DatetimeIndex` which is holds the session
-labels, in sorted order, that the simulation will execute.
+``sessions`` 是 :class:`pandas.DatetimeIndex` 的实例，按执行顺序保存了会话标签。
 
-``benchmark_source`` is an instance of
-:class:`~zipline.sources.benchmark_source.BenchmarkSource` which is the
-interface to the returns of the benchmark specified by
-:func:`~zipline.api.set_benchmark`.
+``benchmark_source`` 是 :class:`~zipline.sources.benchmark_source.BenchmarkSource`
+的实例，是 :func:`~zipline.api.set_benchmark` 设定的基准信息返回结果的接口。
 
 ``end_of_simulation``
 `````````````````````
 
-The ``end_of_simulation`` method should have the following signature:
+``end_of_simulation`` 的定义如下：
 
 .. code-block:: python
 
@@ -138,37 +114,28 @@ The ``end_of_simulation`` method should have the following signature:
                          benchmark_source):
        ...
 
-``ledger`` is an instance of :class:`~zipline.finance.ledger.Ledger` which is
-maintaining the simulation's state. This may be used to lookup the algorithm's
-final portfolio values.
+``ledger`` 是 :class:`~zipline.finance.ledger.Ledger` 类的实例，它保存了回测的状态。
+可以用来查询回测起始金额。
 
-``packet`` is a dictionary to write the end of simulation values for the given
-metric into.
+``packet`` 是一个字典，用于写入结果数值。
 
-``trading_calendar`` is an instance of
-:class:`~zipline.utils.calendars.TradingCalendar` which is the trading calendar
-being used by the simulation.
+``trading_calendar`` 是 :class:`~zipline.utils.calendars.TradingCalendar` 的实例，
+是回测所用的交易日历类。
 
-``sessions`` is a :class:`pandas.DatetimeIndex` which is holds the session
-labels, in sorted order, that the simulation has executed.
+``sessions`` 是 :class:`pandas.DatetimeIndex` 的实例，按执行顺序保存了会话标签。
 
-``data_portal`` is an instance of :class:`~zipline.data.data_portal.DataPortal`
-which is the metric's interface to pricing data.
+``data_portal`` 是 :class:`~zipline.data.data_portal.DataPortal` 的实例，是价格数据的接口。
 
-``benchmark_source`` is an instance of
-:class:`~zipline.sources.benchmark_source.BenchmarkSource` which is the
-interface to the returns of the benchmark specified by
-:func:`~zipline.api.set_benchmark`.
+``benchmark_source`` 是 :class:`~zipline.sources.benchmark_source.BenchmarkSource`
+的实例，是 :func:`~zipline.api.set_benchmark` 设定的基准信息返回结果的接口。
 
 ``start_of_session``
 ````````````````````
 
-The ``start_of_session`` method may see a slightly different view of the
-``ledger`` or ``data_portal`` than the previous ``end_of_session`` if the price
-of any futures owned move between trading sessions or if a capital change
-occurs.
+如果持仓的期货价格发生了变动，或者持仓发生了变动，``start_of_session`` 和 ``end_of_session``
+中的 ``ledger`` 和 ``data_portal`` 变量就会有差异。
 
-The ``start_of_session`` method should have the following signature:
+``start_of_session`` 定义如下：
 
 .. code-block:: python
 
@@ -178,20 +145,17 @@ The ``start_of_session`` method should have the following signature:
                         data_portal):
        ...
 
-``ledger`` is an instance of :class:`~zipline.finance.ledger.Ledger` which is
-maintaining the simulation's state. This may be used to lookup the algorithm's
-current portfolio values.
+``ledger`` 是 :class:`~zipline.finance.ledger.Ledger` 类的实例，它保存了回测的状态。
+可以用来查询回测起始金额。
 
-``session_label`` is a :class:`~pandas.Timestamp` which is the label of the
-session which is about to run.
+``session_label`` 是 :class:`~pandas.Timestamp` 的实例，是将要运行的会话的标签。
 
-``data_portal`` is an instance of :class:`~zipline.data.data_portal.DataPortal`
-which is the metric's interface to pricing data.
+``data_portal`` 是 :class:`~zipline.data.data_portal.DataPortal` 的实例，是价格数据的接口。
 
 ``end_of_session``
 ``````````````````
 
-The ``end_of_session`` method should have the following signature:
+``end_of_session`` 定义如下：
 
 .. code-block:: python
 
@@ -202,34 +166,28 @@ The ``end_of_session`` method should have the following signature:
                       session_ix,
                       data_portal):
 
-``packet`` is a dictionary to write the end of session values. This dictionary
-contains two sub-dictionaries: ``daily_perf`` and ``cumulative_perf``. When
-applicable, the ``daily_perf`` should hold the current day's value, and
-``cumulative_perf`` should hold a cumulative value for the entire simulation up
-to the current time.
+``packet`` 是一个字典结构，用来写入回测结束后的相关数据。
+这个字典又包含两个字典： ``daily_perf`` 和 ``cumulative_perf`` 。
+当适用时， ``daily_perf`` 应当包含当天的数值， ``cumulative_perf`` 应当包含到目前为止的累积值。
 
-``ledger`` is an instance of :class:`~zipline.finance.ledger.Ledger` which is
-maintaining the simulation's state. This may be used to lookup the algorithm's
-current portfolio values.
+``ledger`` 是 :class:`~zipline.finance.ledger.Ledger` 类的实例，它保存了回测的状态。
+可以用来查询回测起始金额。
 
-``session_label`` is a :class:`~pandas.Timestamp` which is the label of the
-session which is has just completed.
+``session_label`` 是 :class:`~pandas.Timestamp` 的实例，是将要运行的会话的标签。
 
-``session_ix`` is an :class:`int` which is the index of the current trading
-session being run. This is provided to allow for efficient access to the daily
-returns through ``ledger.daily_returns_array[:session_ix + 1]``.
+``session_ix`` 是 :class:`int` 型数据。是当前正在运行会话的下标。
+通过它，可以便捷访问日收益： ``ledger.daily_returns_array[:session_ix + 1]`` 。
 
-``data_portal`` is an instance of :class:`~zipline.data.data_portal.DataPortal`
-which is the metric's interface to pricing data
+``data_portal`` 是 :class:`~zipline.data.data_portal.DataPortal` 的实例，是价格数据的接口。
 
 ``end_of_bar``
 ``````````````
 
 .. note::
 
-   ``end_of_bar`` is only called when ``emission_mode`` is ``minute``.
+   只有当 ``emission_mode`` 是 ``minute`` ， ``end_of_bar`` 才会被调用。
 
-The ``end_of_bar`` method should have the following signature:
+``end_of_bar`` 定义如下：
 
 .. code-block:: python
 
@@ -240,32 +198,25 @@ The ``end_of_bar`` method should have the following signature:
                   session_ix,
                   data_portal):
 
-``packet`` is a dictionary to write the end of session values. This dictionary
-contains two sub-dictionaries: ``minute_perf`` and ``cumulative_perf``. When
-applicable, the ``minute_perf`` should hold the current partial day's value, and
-``cumulative_perf`` should hold a cumulative value for the entire simulation up
-to the current time.
+``packet`` 是一个字典结构，用来写入回测结束后的相关数据。
+这个字典又包含两个字典： ``daily_perf`` 和 ``cumulative_perf`` 。
+当适用时， ``daily_perf`` 应当包含当天的数值， ``cumulative_perf`` 应当包含到目前为止的累积值。
 
-``ledger`` is an instance of :class:`~zipline.finance.ledger.Ledger` which is
-maintaining the simulation's state. This may be used to lookup the algorithm's
-current portfolio values.
+``ledger`` 是 :class:`~zipline.finance.ledger.Ledger` 类的实例，它保存了回测的状态。
+可以用来查询回测起始金额。
 
-``dt`` is a :class:`~pandas.Timestamp` which is the label of bar that has just
-completed.
+``dt`` 是 :class:`~pandas.Timestamp` 的实例，是刚刚完成的 bar 的标签。
 
-``session_ix`` is an :class:`int` which is the index of the current trading
-session being run. This is provided to allow for efficient access to the daily
-returns through ``ledger.daily_returns_array[:session_ix + 1]``.
+``session_ix`` 是 :class:`int` 型数据。是当前正在运行会话的下标。
+通过它，可以便捷访问日收益： ``ledger.daily_returns_array[:session_ix + 1]`` 。
 
-``data_portal`` is an instance of :class:`~zipline.data.data_portal.DataPortal`
-which is the metric's interface to pricing data.
+``data_portal`` 是 :class:`~zipline.data.data_portal.DataPortal` 的实例，是价格数据的接口。
 
-Defining New Metrics Sets
+创建新的指标集
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Users may use :func:`zipline.finance.metrics.register` to register a new metrics
-set. This may be used to decorate a function taking no arguments which returns a
-new set of metric object instances. For example:
+用户可以调用 :func:`zipline.finance.metrics.register` 注册新的指标集。
+这个函数可以当作装饰器使用，它可以装饰一个没有参数并返回含有指标 set 结构的函数。例如：
 
 .. code-block:: python
 
@@ -276,9 +227,7 @@ new set of metric object instances. For example:
        return {MyMetric(), MyOtherMetric(), ...}
 
 
-This may be embedded in the user's ``extension.py``.
+这可以添加到用户的 ``extension.py`` 文件中。
 
-The reason that a metrics set is defined as a function which produces a set,
-instead of just a set, is that users may want to fetch external data or
-resources to construct their metrics. By putting this behind a callable, users
-do not need to fetch the resources when the metrics set is not being used.
+指标集被定义为一个函数，而不是一个 set 结构的原因是，用户在构造过程中可能需要访问一些额外的资源数据。
+将这些额外访问放到函数里，就可以在不使用指标集的时候避免这些额外的访问。

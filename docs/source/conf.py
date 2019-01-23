@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 import sys
 import os
 
@@ -31,7 +32,7 @@ extensions += ['sphinx.ext.napoleon']
 numpydoc_show_class_members = False
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['.templates']
+templates_path = ['_templates']
 
 # The suffix of source filenames.
 source_suffix = '.rst'
@@ -96,3 +97,7 @@ intersphinx_mapping = {
 doctest_global_setup = "import zipline"
 
 todo_include_todos = True
+
+html_copy_source = False
+
+html_title = u'Zipline 中文文档'

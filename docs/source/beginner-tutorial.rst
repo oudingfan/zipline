@@ -1,64 +1,44 @@
-Zipline Beginner Tutorial
+入门指南
 -------------------------
 
-Basics
-~~~~~~
+基本概念
+~~~~~~~~~~
 
-Zipline is an open-source algorithmic trading simulator written in
-Python.
+Zipline 是一个用 Python 开发的开源的算法交易框架。
 
-The source can be found at: https://github.com/quantopian/zipline
+源代码可以在此查看： https://github.com/quantopian/zipline
 
-Some benefits include:
+主要优点有：
 
--  Realistic: slippage, transaction costs, order delays.
--  Stream-based: Process each event individually, avoids look-ahead
-   bias.
--  Batteries included: Common transforms (moving average) as well as
-   common risk calculations (Sharpe).
--  Developed and continuously updated by
-   `Quantopian <https://www.quantopian.com>`__ which provides an
-   easy-to-use web-interface to Zipline, 10 years of minute-resolution
-   historical US stock data, and live-trading capabilities. This
-   tutorial is directed at users wishing to use Zipline without using
-   Quantopian. If you instead want to get started on Quantopian, see
-   `here <https://www.quantopian.com/faq#get-started>`__.
+-  模拟现实：滑点、手续费、延时成交。
+-  流式处理：单独处理每个事件，避免未来函数。
+-  丰富的库：技术指标（如移动平均）、风险评估（如夏普比率）。
+-  由 `Quantopian <https://www.quantopian.com>`__ 开发和持续维护，
+   为 Zipline 提供易于使用的网络界面。Quantopian 还提供 10
+   年的分钟级美国股市数据和实时交易功能。本教程针对不使用 Quantopian
+   的 Zipline 用户。如果想了解 Quantopian，请参阅
+   `此处 <https://www.quantopian.com/faq#get-started>`__ 。
 
-This tutorial assumes that you have zipline correctly installed, see the
-`installation
-instructions <https://github.com/quantopian/zipline#installation>`__ if
-you haven't set up zipline yet.
+本教程假设您已正确安装了 Zipline，如果尚未安装 Zipline ，请参阅
+`安装指南 <./install.html>`__ 。
 
-Every ``zipline`` algorithm consists of two functions you have to
-define:
+每个 ``zipline`` 策略都必须包含以下两个函数：
 
 * ``initialize(context)``
 * ``handle_data(context, data)``
 
-Before the start of the algorithm, ``zipline`` calls the
-``initialize()`` function and passes in a ``context`` variable.
-``context`` is a persistent namespace for you to store variables you
-need to access from one algorithm iteration to the next.
+在执行策略之前， ``zipline`` 调用 ``initialize()`` 函数并传入一个
+``context`` 变量。``context`` 是一个持久变量，用于存储策略迭代中需要访问的数据。
 
-After the algorithm has been initialized, ``zipline`` calls the
-``handle_data()`` function once for each event. At every call, it passes
-the same ``context`` variable and an event-frame called ``data``
-containing the current trading bar with open, high, low, and close
-(OHLC) prices as well as volume for each stock in your universe. For
-more information on these functions, see the `relevant part of the
-Quantopian docs <https://www.quantopian.com/help#api-toplevel>`__.
+策略被初始化之后，``zipline`` 为每个事件调用一次 ``handle_data()`` 函数。
+每次调用时，都会传入相同的 ``context`` 变量和 ``data`` 事件框架，``data``
+中含有当前开盘价、最高价、最低价、收盘价（OHLC）和成交量的数据。有关这些函数的更多信息，请参阅
+`Quantopian 相关文档 <https://www.quantopian.com/help#api-toplevel>`__.
 
-My First Algorithm
+第一个策略
 ~~~~~~~~~~~~~~~~~~
 
-Lets take a look at a very simple algorithm from the ``examples``
-directory, ``buyapple.py``:
-
-.. code-block:: python
-
-   from zipline.examples import buyapple
-   buyapple??
-
+让我们看下 ``examples`` 文件夹中的一个简单例子，``buyapple.py``：
 
 .. code-block:: python
 
@@ -74,52 +54,41 @@ directory, ``buyapple.py``:
        record(AAPL=data.current(symbol('AAPL'), 'price'))
 
 
-As you can see, we first have to import some functions we would like to
-use. All functions commonly used in your algorithm can be found in
-``zipline.api``. Here we are using :func:`~zipline.api.order()` which takes two
-arguments: a security object, and a number specifying how many stocks you would
-like to order (if negative, :func:`~zipline.api.order()` will sell/short
-stocks). In this case we want to order 10 shares of Apple at each iteration. For
-more documentation on ``order()``, see the `Quantopian docs
-<https://www.quantopian.com/help#api-order>`__.
+可以看到，首先我们引入一些需要的函数。策略中所有常用的函数可以在 ``zipline.api`` 中找到。
+这里的 :func:`~zipline.api.order()` 函数接受两个参数：一个股票代码，一个数量（为负则为卖出或做空）。
+在例子中，每次迭代我们买入 10 股 APPL 股票。更多 ``order()`` 信息，可参阅
+`Quantopian 文档 <https://www.quantopian.com/help#api-order>`__ 。
 
-Finally, the :func:`~zipline.api.record` function allows you to save the value
-of a variable at each iteration. You provide it with a name for the variable
-together with the variable itself: ``varname=var``. After the algorithm
-finished running you will have access to each variable value you tracked
-with :func:`~zipline.api.record` under the name you provided (we will see this
-further below). You also see how we can access the current price data of the
-AAPL stock in the ``data`` event frame (for more information see
-`here <https://www.quantopian.com/help#api-event-properties>`__).
+:func:`~zipline.api.record` 函数能在每一次迭代的时候记录一些临时数据。
+第一个参数接受 ``变量名=变量值`` 的这样参数。回测结束进行分析的时候，能够通过变量名访问到
+这些记录的数据（下面会有示例）。您还可以看到如何在 ``data`` 事件框架中访问之前记录的
+AAPL 股票的价格数据（更多信息请访问
+`这里 <https://www.quantopian.com/help#api-event-properties>`__ ）。
 
-Running the Algorithm
+运行策略
 ~~~~~~~~~~~~~~~~~~~~~
 
-To now test this algorithm on financial data, ``zipline`` provides three
-interfaces: A command-line interface, ``IPython Notebook`` magic, and
-:func:`~zipline.run_algorithm`.
+现在要在价格数据上面运行这个策略， ``zipline`` 提供三种接口：命令行、``IPython Notebook``
+和 :func:`~zipline.run_algorithm` 。
 
-Ingesting Data
+获取数据
 ^^^^^^^^^^^^^^
-If you haven't ingested the data, you'll need a `Quandl <https://docs.quandl.com/docs#section-authentication>`__ API key to
-ingest the default bundle. Then run:
+如果您还没有拿到数据，您将需要 `Quandl <https://docs.quandl.com/docs#section-authentication>`__
+的 API key 来获取默认数据。然后运行：
 
 .. code-block:: bash
 
    $ QUANDL_API_KEY=<yourkey> zipline ingest [-b <bundle>]
 
-where ``<bundle>`` is the name of the bundle to ingest, defaulting to
-``quandl``.
+``<bundle>`` 是要获取数据的名称，默认是 ``quandl`` 。
 
-you can check out the :ref:`ingesting data <ingesting-data>` section for
-more detail.
+您可以查看 :ref:`获取数据 <ingesting-data>` 获取更多信息。
 
-Command Line Interface
+命令行
 ^^^^^^^^^^^^^^^^^^^^^^
 
-After you installed zipline you should be able to execute the following
-from your command line (e.g. ``cmd.exe`` on Windows, or the Terminal app
-on OSX):
+安装 Zipline 之后，您就可以在命令行中运行以下命令了（在
+Windows 中使用 ``cmd.exe`` ，在 macOS 中使用 Terminal App）：
 
 .. code-block:: bash
 
@@ -159,20 +128,13 @@ on OSX):
    --print-algo / --no-print-algo  Print the algorithm to stdout.
    --help                          Show this message and exit.
 
-As you can see there are a couple of flags that specify where to find your
-algorithm (``-f``) as well as parameters specifying which data to use,
-defaulting to ``quandl``. There are also arguments for
-the date range to run the algorithm over (``--start`` and ``--end``). Finally,
-you'll want to save the performance metrics of your algorithm so that you can
-analyze how it performed. This is done via the ``--output`` flag and will cause
-it to write the performance ``DataFrame`` in the pickle Python file format.
-Note that you can also define a configuration file with these parameters that
-you can then conveniently pass to the ``-c`` option so that you don't have to
-supply the command line args all the time (see the .conf files in the examples
-directory).
+您可以看到，由很多可以设置的参数，如 ``-f`` 设置使用的策略， ``-b`` 设置使用的数据（默认为 ``quandl``）。
+也可以用 ``--start`` 和 ``--end`` 指定回测时间区间。
+您还可以保存回测结果以便后续分析，方法是用 ``--output`` 参数指定文件名，结果将以 ``DateFrame``
+的格式保存到 Python 的 pickle 文件内。您还可以将配置写到配置文件里，然后用 ``-c``
+指定配置文件的路径，这样就不用每次都指定各种参数了（请参阅示例目录中的 .conf 文件）。
 
-Thus, to execute our algorithm from above and save the results to
-``buyapple_out.pickle`` we would call ``zipline run`` as follows:
+要执行上面的算法，并把结果保存到 ``buyapple_out.pickle`` ，可以像这样调用 ``zipline run`` ：
 
 .. code-block:: python
 
@@ -189,26 +151,18 @@ Thus, to execute our algorithm from above and save the results to
     [2018-01-03 04:30:51.843672] INFO: Performance: last close: 2017-12-29 21:00:00+00:00
 
 
-``run`` first calls the ``initialize()`` function, and then
-streams the historical stock price day-by-day through ``handle_data()``.
-After each call to ``handle_data()`` we instruct ``zipline`` to order 10
-stocks of AAPL. After the call of the ``order()`` function, ``zipline``
-enters the ordered stock and amount in the order book. After the
-``handle_data()`` function has finished, ``zipline`` looks for any open
-orders and tries to fill them. If the trading volume is high enough for
-this stock, the order is executed after adding the commission and
-applying the slippage model which models the influence of your order on
-the stock price, so your algorithm will be charged more than just the
-stock price \* 10. (Note, that you can also change the commission and
-slippage model that ``zipline`` uses, see the `Quantopian
-docs <https://www.quantopian.com/help#ide-slippage>`__ for more
-information).
+``run`` 首先调用 ``initialize()`` 函数，然后逐条将股票价格传入 ``handle_data()`` 。
+每次调用 ``handle_data()`` 后，都会买入 10 股 AAPL 。
+调用 ``order()`` 后， ``Zipline`` 记录下单信息并送入盘口。
+在 ``handle_data()`` 函数结束后， ``Zipline`` 查找未成交订单，并进行撮合交易。
+如果市场容量足够容纳您的订单，则会在添加佣金并应用滑点模型后成交订单。
+滑点模型会模拟您的订单对市场价格的影响，因此收取的费用不仅仅是股票价格 \* 10 。
+（您可以更改 ``Zipline`` 使用的佣金和滑点模型，请参阅
+`Quantopian 文档 <https://www.quantopian.com/help#ide-slippage>`__
+获取更多信息）。
 
-Lets take a quick look at the performance ``DataFrame``. For this, we
-use ``pandas`` from inside the IPython Notebook and print the first ten
-rows. Note that ``zipline`` makes heavy usage of ``pandas``, especially
-for data input and outputting so it's worth spending some time to learn
-it.
+让我们看一下保存的 ``DataFrame`` 结果。我们在 IPython Notebook 中用 ``pandas`` 加载结果并打印前 10 行。
+``Zipline`` 大量使用 ``pandas`` ，特别是对于数据输入和输出这部分，所以值得花一些时间来学习。
 
 .. code-block:: python
 
@@ -473,13 +427,8 @@ it.
     </table>
     </div>
 
-As you can see, there is a row for each trading day, starting on the
-first business day of 2016. In the columns you can find various
-information about the state of your algorithm. The very first column
-``AAPL`` was placed there by the ``record()`` function mentioned earlier
-and allows us to plot the price of apple. For example, we could easily
-examine now how our portfolio value changed over time compared to the
-AAPL stock price.
+可以看到，从 2016 年第一个交易日起，每天都有一条记录。在每列中可以找到策略表现的各类信息。
+第一列的 ``AAPL`` 的值由 ``record()`` 写入，方便后续绘制图线，比较策略收益与股票价格的表现。
 
 .. code-block:: python
 
@@ -505,27 +454,20 @@ AAPL stock price.
 .. image:: tutorial_files/tutorial_11_2.png
 
 
-As you can see, our algorithm performance as assessed by the
-``portfolio_value`` closely matches that of the AAPL stock price. This
-is not surprising as our algorithm only bought AAPL every chance it got.
+``portfolio_value`` 表示我们策略的收益，可以看到和 AAPL 的价格走势很接近。
+这很好理解，因为只是简单买入。
 
 IPython Notebook
 ~~~~~~~~~~~~~~~~
 
-The `IPython Notebook <http://ipython.org/notebook.html>`__ is a very
-powerful browser-based interface to a Python interpreter (this tutorial
-was written in it). As it is already the de-facto interface for most
-quantitative researchers ``zipline`` provides an easy way to run your
-algorithm inside the Notebook without requiring you to use the CLI.
+`IPython Notebook <http://ipython.org/notebook.html>`__ 是一个非常强大的、
+基于浏览器界面的 Python 解释器（本教程就是基于它而写）。它已经是大多数宽客的事实上的开发环境，
+``Zipline`` 提供了一种不使用命令行就能在 Notebook 中运行策略的方法。
 
-To use it you have to write your algorithm in a cell and let ``zipline``
-know that it is supposed to run this algorithm. This is done via the
-``%%zipline`` IPython magic command that is available after you
-``import zipline`` from within the IPython Notebook. This magic takes
-the same arguments as the command line interface described above. Thus
-to run the algorithm from above with the same parameters we just have to
-execute the following cell after importing ``zipline`` to register the
-magic.
+使用时，将策略写在 Notebook 的一个 cell 中，并且让 ``Zipline`` 知道将要运行这个策略。
+方法是在 ``import zipline`` 使用后 ``%%zipline`` 这个 IPython 魔术方法。
+这个魔术方法采用与上面命令行相同的参数。为了和上面命令行的例子保持一致，在 import ``zipline``
+之后，运行下面的 cell 。
 
 .. code-block:: python
 
@@ -543,11 +485,9 @@ magic.
        order(symbol('AAPL'), 10)
        record(AAPL=data[symbol('AAPL')].price)
 
-Note that we did not have to specify an input file as above since the
-magic will use the contents of the cell and look for your algorithm
-functions there. Also, instead of defining an output file we are
-specifying a variable name with ``-o`` that will be created in the name
-space and contain the performance ``DataFrame`` we looked at above.
+注意我们并没有指定输入文件，因为魔术方法将使用 cell 内的内容，并在那里找到你的策略算法。
+此外，我们也没有定义输出文件，而是指定了 ``-o`` 参数，他将在环境创建一个包含像上面那样
+结果的 ``DataFrame`` 变量。
 
 .. code-block:: python
 
@@ -810,32 +750,24 @@ space and contain the performance ``DataFrame`` we looked at above.
    </table>
    </div>
 
-Access to Previous Prices Using ``history``
+使用 ``history`` 回看价格数据
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Working example: Dual Moving Average Cross-Over
+示例：双移动平均线交叉
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The Dual Moving Average (DMA) is a classic momentum strategy. It's
-probably not used by any serious trader anymore but is still very
-instructive. The basic idea is that we compute two rolling or moving
-averages (mavg) -- one with a longer window that is supposed to capture
-long-term trends and one shorter window that is supposed to capture
-short-term trends. Once the short-mavg crosses the long-mavg from below
-we assume that the stock price has upwards momentum and long the stock.
-If the short-mavg crosses from above we exit the positions as we assume
-the stock to go down further.
+双移动平均线交叉（DMA）一个经典的动量策略。要求较高的交易者可能已经不再使用它了，
+但它仍旧有一些启发性。基本思想是引入两条移动平均线（mavg），一条长周期的捕捉长期趋势，
+一条短周期的捕获短期趋势。短线上穿长线，我们认为将持续上涨，因此做多。下穿的时候我们
+认为还将下跌，因此卖出。
 
-As we need to have access to previous prices to implement this strategy
-we need a new concept: History
+因为计算移动平均线需要用到历史数据，因此引入一个新概念：History 。
 
-``data.history()`` is a convenience function that keeps a rolling window of
-data for you. The first argument is the number of bars you want to
-collect, the second argument is the unit (either ``'1d'`` or ``'1m'``,
-but note that you need to have minute-level data for using ``1m``). For
-a more detailed description of ``history()``'s features, see the
-`Quantopian docs <https://www.quantopian.com/help#ide-history>`__.
-Let's look at the strategy which should make this clear:
+``data.history()`` 函数可以让你很方便的获取历史数据。第一个参数是你需要获取的数据条数，
+第二个是时间周期（如 ``1d`` 或 ``1m``，使用 ``1m`` 时要提供分钟级数据）。有关
+``history()`` 更多说明，请参阅
+`Quantopian 文档 <https://www.quantopian.com/help#ide-history>`__ 。
+让我们看一个策略的例子：
 
 .. code-block:: python
 
@@ -900,38 +832,25 @@ Let's look at the strategy which should make this clear:
 
 .. image:: tutorial_files/tutorial_22_1.png
 
-Here we are explicitly defining an ``analyze()`` function that gets
-automatically called once the backtest is done (this is not possible on
-Quantopian currently).
+这里我们定义了一个 ``analyze()`` 函数，在回测结束后它将自动被调用
+（在 Quantopian 这个功能还不可用）。
 
-Although it might not be directly apparent, the power of ``history()``
-(pun intended) can not be under-estimated as most algorithms make use of
-prior market developments in one form or another. You could easily
-devise a strategy that trains a classifier with
-`scikit-learn <http://scikit-learn.org/stable/>`__ which tries to
-predict future market movements based on past prices (note, that most of
-the ``scikit-learn`` functions require ``numpy.ndarray``\ s rather than
-``pandas.DataFrame``\ s, so you can simply pass the underlying
-``ndarray`` of a ``DataFrame`` via ``.values``).
+虽然收益变化不明显，但 ``history()`` 的作用不容小觑，因为大部分策略都是基于历史数据的。
+很容易使用 `scikit-learn <http://scikit-learn.org/stable/>`__ 设计一个分类器，
+基于历史数据来预测未来市场的走向（注意，大部分 ``scikit-learn`` 函数不使用
+``pandas.DataFrame`` ，而是使用 ``numpy.ndarray``，所以你可以直接使用
+``DataFrame`` 的原始值 ``.values`` ，它是 ``ndarray`` 格式的）。
 
-We also used the ``order_target()`` function above. This and other
-functions like it can make order management and portfolio rebalancing
-much easier. See the `Quantopian documentation on order
-functions <https://www.quantopian.com/help#api-order-methods>`__ for
-more details.
+上面我还使用了 ``order_target()`` 函数。这类函数能使订单管理和收益再平衡变得容易。
+更多信息，请参阅
+`order 函数文档 <https://www.quantopian.com/help#api-order-methods>`__ 。
 
-Conclusions
+结论
 ~~~~~~~~~~~
 
-We hope that this tutorial gave you a little insight into the
-architecture, API, and features of ``zipline``. For next steps, check
-out some of the
-`examples <https://github.com/quantopian/zipline/tree/master/zipline/examples>`__.
+希望这个教程能让你大致了解 ``Zipline`` 的结构、API 和功能。下一步，可以查看一些
+`示例 <https://github.com/quantopian/zipline/tree/master/zipline/examples>`__ 。
 
-Feel free to ask questions on `our mailing
-list <https://groups.google.com/forum/#!forum/zipline>`__, report
-problems on our `GitHub issue
-tracker <https://github.com/quantopian/zipline/issues?state=open>`__,
-`get
-involved <https://github.com/quantopian/zipline/wiki/Contribution-Requests>`__,
-and `checkout Quantopian <https://quantopian.com>`__.
+可以在 `邮件列表 <https://groups.google.com/forum/#!forum/zipline>`__ 中提问，在
+`GitHub issue <https://github.com/quantopian/zipline/issues?state=open>`__ 和
+`Quantopian <https://quantopian.com>`__  中提交问题。
